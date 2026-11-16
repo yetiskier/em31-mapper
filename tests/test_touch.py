@@ -14,7 +14,10 @@ from em31mapper.mapnav import MapNavigator, nice_length  # noqa: E402
 @pytest.fixture(scope="module")
 def nav():
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
-    plot = pg.PlotWidget(); plot.setAspectLocked(True); plot.resize(600, 800); plot.show()
+    plot = pg.PlotWidget(); plot.setAspectLocked(True); plot.resize(600, 800)
+    # fixed axis sizes: tick labels changing width would otherwise resize the map mid-test
+    plot.getAxis("left").setWidth(60); plot.getAxis("bottom").setHeight(40)
+    plot.show()
     taps = []
     n = MapNavigator(plot, on_tap=lambda x, y: taps.append((x, y)))
     n.taps = taps
@@ -33,21 +36,64 @@ def _at(n, px, py):
     return v.x(), v.y()
 
 
+def _settle(n):
+    """Let deferred layout finish (slower on Windows) so measurements use the final geometry."""
+    last = None
+    for _ in range(50):
+        QtWidgets.QApplication.processEvents()
+        geo = (n.vb.sceneBoundingRect(), tuple(map(tuple, n.vb.viewRange())))
+        if geo == last:
+            return
+        last = geo
+
+
 def _reset(n):
     n.vb.setRange(xRange=(0, 100), yRange=(0, 100), padding=0)
-    QtWidgets.QApplication.processEvents()
+    _settle(n)
+
+
+class _Spy(QtCore.QObject):
+    """Records touch positions exactly as Qt delivers them to the viewport."""
+
+    def __init__(self, vp):
+        super().__init__(vp)
+        self.seen = []
+        vp.installEventFilter(self)          # installed last -> sees events first
+
+    def eventFilter(self, obj, ev):
+        if ev.type() in (QtCore.QEvent.TouchBegin, QtCore.QEvent.TouchUpdate):
+            self.seen.append([(p.position().x(), p.position().y()) for p in ev.points()])
+        return False
+
+
+def test_touch_positions_are_viewport_relative(nav):
+    """The app maps QEventPoint.position() as viewport pixels; check Qt agrees on this platform."""
+    _reset(nav)
+    vp, dev = nav.plot.viewport(), QtTest.QTest.createTouchDevice()
+    spy = _Spy(vp)
+    for p in (QtCore.QPoint(200, 300), QtCore.QPoint(37, 512)):
+        spy.seen.clear()
+        QtTest.QTest.touchEvent(vp, dev).press(0, p, vp).commit()
+        QtTest.QTest.touchEvent(vp, dev).release(0, p, vp).commit()
+        got = spy.seen[0][0]
+        assert abs(got[0] - p.x()) < 0.5 and abs(got[1] - p.y()) < 0.5, (
+            f"sent viewport pixel {p.toTuple()}, Qt delivered position() {got}")
+    spy.setParent(None)
 
 
 def test_pan(nav):
     _reset(nav)
+    nav.taps.clear()
     vp, dev = nav.plot.viewport(), QtTest.QTest.createTouchDevice()
     c = vp.rect().center()
     x0, mpp, w0 = _rng(nav)[0], nav.vb.viewPixelSize()[0], _rng(nav)[1] - _rng(nav)[0]
+    rect0 = nav.vb.sceneBoundingRect()
     QtTest.QTest.touchEvent(vp, dev).press(0, c, vp).commit()
     for k in range(1, 11):
         QtTest.QTest.touchEvent(vp, dev).move(0, c + QtCore.QPoint(15 * k, 0), vp).commit()
     QtTest.QTest.touchEvent(vp, dev).release(0, c + QtCore.QPoint(150, 0), vp).commit()
-    # axis tick labels can change width mid-pan and resize the plot by a pixel
+    _settle(nav)
+    assert nav.vb.sceneBoundingRect() == rect0, "map area resized during the gesture"
     assert abs((x0 - _rng(nav)[0]) - 150 * mpp) < 1.0 * mpp
     assert abs((_rng(nav)[1] - _rng(nav)[0]) - w0) < 1.0 * mpp
     assert nav.taps == []                       # a drag is not a tap
@@ -64,6 +110,7 @@ def test_pinch_keeps_point_under_fingers(nav):
         d = 40 + 10 * k
         QtTest.QTest.touchEvent(vp, dev).move(0, c - QtCore.QPoint(d, 0), vp).move(1, c + QtCore.QPoint(d, 0), vp).commit()
     QtTest.QTest.touchEvent(vp, dev).release(0, c - QtCore.QPoint(120, 0), vp).release(1, c + QtCore.QPoint(120, 0), vp).commit()
+    _settle(nav)
     assert abs(w0 / (_rng(nav)[1] - _rng(nav)[0]) - 3.0) < 1e-6        # 80 px -> 240 px apart
     after = _at(nav, c.x(), c.y())
     assert abs(after[0] - before[0]) < 1e-6 and abs(after[1] - before[1]) < 1e-6
