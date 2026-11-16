@@ -175,3 +175,7 @@ readings decode, save a few seconds of `_em31_raw.bin` — the parser lives in
 `geo.py` UTM + tile maths · `plan.py` planned lines + guidance ·
 `imagery.py` GeoTIFF/world files + tile cache · `gridding.py` NumPy IDW + ASCII grid · `mapnav.py` touch pan/pinch/zoom · `logger.py` files · `sources.py`
 serial threads + simulator · `app.py` GUI. Tests: `python -m pytest tests`.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Aesir Consulting LLC.
