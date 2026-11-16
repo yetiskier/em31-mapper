@@ -1,7 +1,8 @@
 # Push this folder to GitHub and the Actions tab produces a ready-to-copy Windows build.
 name: build-windows
-# Pushing a version tag (e.g. v0.5.0) also publishes EM31Mapper.zip as a GitHub Release, downloadable
-# without a GitHub account at .../releases/latest/download/EM31Mapper.zip
+# Every push builds and self-tests the .exe. When main carries a version (em31mapper/__init__.py) that
+# has no release yet -- or a matching v* tag is pushed -- EM31Mapper.zip is published as a GitHub Release,
+# downloadable without a GitHub account at .../releases/latest/download/EM31Mapper.zip
 on:
   push:
     branches: [main]
@@ -34,16 +35,31 @@ jobs:
         run: Copy-Item README-FIRST.txt dist/EM31Mapper/
       - uses: actions/upload-artifact@v4
         with: { name: EM31Mapper-windows, path: dist/EM31Mapper }
-      - name: Check the tag matches the program version
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Decide whether to publish a release
+        id: rel
         shell: pwsh
+        env: { GH_TOKEN: "${{ github.token }}" }
         run: |
-          $v = python -c "import em31mapper; print(em31mapper.__version__)"
-          if ("v$v" -ne "${{ github.ref_name }}") { Write-Error "Tag ${{ github.ref_name }} but program version is $v"; exit 1 }
+          $v = "v" + (python -c "import em31mapper; print(em31mapper.__version__)")
+          if ("${{ github.ref_type }}" -eq "tag") {
+            if ($v -ne "${{ github.ref_name }}") { Write-Error "Tag ${{ github.ref_name }} but program version is $v"; exit 1 }
+          } elseif ("${{ github.ref_name }}" -ne "main") {
+            "publish=false" >> $env:GITHUB_OUTPUT; exit 0
+          }
+          gh release view $v *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $v already exists - nothing to publish"
+            "publish=false" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Publishing release $v"
+            "publish=true" >> $env:GITHUB_OUTPUT; "tag=$v" >> $env:GITHUB_OUTPUT
+          }
+          exit 0
       - name: Package and publish the release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.rel.outputs.publish == 'true'
         shell: pwsh
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
           Compress-Archive -Path dist/EM31Mapper -DestinationPath EM31Mapper.zip
-          gh release create "${{ github.ref_name }}" EM31Mapper.zip --title "EM31 Mapper ${{ github.ref_name }}" --notes-file .github/release-notes.md
+          gh release create "${{ steps.rel.outputs.tag }}" EM31Mapper.zip --target "${{ github.sha }}" `
+            --title "EM31 Mapper ${{ steps.rel.outputs.tag }}" --notes-file .github/release-notes.md
