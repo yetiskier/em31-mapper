@@ -8,6 +8,7 @@ interpolating between GPS fixes, logs everything to disk, and draws a live
 gridded conductivity (or in-phase) map with your track as you walk.
 
 
+**[Download for Windows](https://github.com/yetiskier/em31-mapper/releases/latest/download/EM31Mapper.zip)** (latest release, 64-bit Windows 10/11, no install needed) ·
 **[User manual](docs/USER_MANUAL.md)** — installing on the Mesa2, field workflow, every setting, output files and troubleshooting.
 
 ## Getting it onto the Mesa2

@@ -36,8 +36,8 @@ The program is a self-contained folder, `C:\EM31Mapper`, delivered as a zip file
 
 ### Install
 
-1. Copy `EM31Mapper.zip` to the Mesa2 (a USB stick is easiest).
-2. Right-click (on the touchscreen: press and hold) part 1 → **Extract All…**. Replace the suggested folder with `C:\` and click **Extract**.
+1. Download [`EM31Mapper.zip`](https://github.com/yetiskier/em31-mapper/releases/latest/download/EM31Mapper.zip) (always the latest version) and copy it to the Mesa2 (a USB stick is easiest), or download it on the Mesa2 directly.
+2. Right-click (on the touchscreen: press and hold) `EM31Mapper.zip` → **Extract All…**. Replace the suggested folder with `C:\` and click **Extract**.
 3. Check that `C:\EM31Mapper\EM31Mapper.exe` exists. If you see `C:\EM31Mapper\EM31Mapper\…`, move the inner folder up to `C:\`.
 4. Double-click `EM31Mapper.exe`. If Windows SmartScreen says “Windows protected your PC”, tap **More info → Run anyway** (the program is not code-signed).
 
@@ -51,7 +51,7 @@ The program is a self-contained folder, `C:\EM31Mapper`, delivered as a zip file
 
 1. Close EM31 Mapper.
 2. Delete `C:\EM31Mapper` (recommended), or extract over it and choose **Replace the files in the destination**.
-3. Extract both new zips to `C:\` as above.
+3. Extract the new `EM31Mapper.zip` to `C:\` as above.
 
 Nothing you need is lost. Survey data, the imagery cache and logs live in `Documents\EM31Mapper`; settings, ports and the loaded plan are stored in your Windows user profile (registry key `HKEY_CURRENT_USER\Software\EM31Mapper`). Shortcuts keep working because the path is unchanged. The window title shows the version, e.g. **EM31 Mapper 0.5.0**.
 
@@ -487,7 +487,7 @@ Run `EM31Mapper.exe --selftest` (a shortcut with `--selftest` in its Target, sec
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | SmartScreen blocks the program | Unsigned program | More info → Run anyway |
-| “Missing DLL” at start | Only one of the two zips extracted | Extract both to the same place (section 2) |
+| “Missing DLL” at start | Incomplete extraction, or files missing from `C:\EM31Mapper` | Delete the folder and extract `EM31Mapper.zip` again (section 2) |
 | Port error, “retrying…” | Port in use, wrong port, or device off | Close EM31win and GPS utilities; check the COM number in Device Manager or Bluetooth COM Ports |
 | NO DATA, monitor shows nothing | Cable, power, wrong port or baud | Check power and cable; EM31 at 9600 baud |
 | NO DATA, monitor shows bytes | Bytes don’t match the expected EM31 record | Save a few seconds of `_em31_raw.bin` and the monitor text for diagnosis |

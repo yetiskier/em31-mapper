@@ -1,6 +1,14 @@
 # Push this folder to GitHub and the Actions tab produces a ready-to-copy Windows build.
 name: build-windows
-on: [push, workflow_dispatch]
+# Pushing a version tag (e.g. v0.5.0) also publishes EM31Mapper.zip as a GitHub Release, downloadable
+# without a GitHub account at .../releases/latest/download/EM31Mapper.zip
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write          # needed only to create the release
 jobs:
   build:
     runs-on: windows-latest
@@ -21,5 +29,21 @@ jobs:
           $p = Start-Process dist/EM31Mapper/EM31Mapper.exe -ArgumentList '--selftest','--quiet' -Wait -PassThru
           Get-Content "$env:USERPROFILE/Documents/EM31Mapper/selftest.txt"
           exit $p.ExitCode
+      - name: Add quick-start text to the program folder
+        shell: pwsh
+        run: Copy-Item README-FIRST.txt dist/EM31Mapper/
       - uses: actions/upload-artifact@v4
         with: { name: EM31Mapper-windows, path: dist/EM31Mapper }
+      - name: Check the tag matches the program version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $v = python -c "import em31mapper; print(em31mapper.__version__)"
+          if ("v$v" -ne "${{ github.ref_name }}") { Write-Error "Tag ${{ github.ref_name }} but program version is $v"; exit 1 }
+      - name: Package and publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          Compress-Archive -Path dist/EM31Mapper -DestinationPath EM31Mapper.zip
+          gh release create "${{ github.ref_name }}" EM31Mapper.zip --title "EM31 Mapper ${{ github.ref_name }}" --notes-file .github/release-notes.md
