@@ -7,6 +7,9 @@ It reads both instruments over COM ports, positions every EM31 reading by
 interpolating between GPS fixes, logs everything to disk, and draws a live
 gridded conductivity (or in-phase) map with your track as you walk.
 
+
+**[User manual](docs/USER_MANUAL.md)** — installing on the Mesa2, field workflow, every setting, output files and troubleshooting.
+
 ## Getting it onto the Mesa2
 
 **Prebuilt (recommended):** unzip `EM31Mapper-Windows-x64.zip`, copy the `EM31Mapper`
