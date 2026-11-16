@@ -13,6 +13,13 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      # Code signing (Azure Trusted / Artifact Signing, Aesir Consulting LLC) runs only when this
+      # secret is set, so builds still work without it. Secrets needed, as for Yggdrasil:
+      #   AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET  (service principal with the
+      #     "Trusted Signing Certificate Profile Signer" role)
+      #   AZURE_CODESIGNING_ENDPOINT / AZURE_CODESIGNING_ACCOUNT / AZURE_CODESIGNING_PROFILE
+      SIGNING_ACCOUNT: ${{ secrets.AZURE_CODESIGNING_ACCOUNT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,6 +29,30 @@ jobs:
         env: { QT_QPA_PLATFORM: offscreen }
       - run: python -m pytest -q tests
       - run: pyinstaller --noconfirm EM31Mapper.spec
+      - name: Sign EM31Mapper.exe (Azure Trusted Signing - gated)
+        if: ${{ env.SIGNING_ACCOUNT != '' }}
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_CODESIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_CODESIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_CODESIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\dist\EM31Mapper
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com/
+          timestamp-digest: SHA256
+      - name: Check the signature
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature dist/EM31Mapper/EM31Mapper.exe
+          Write-Host "Signature: $($sig.Status) - $($sig.SignerCertificate.Subject)"
+          if ($env:SIGNING_ACCOUNT -and ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Aesir Consulting LLC')) {
+            Write-Error "EM31Mapper.exe is not validly signed by Aesir Consulting LLC"; exit 1
+          }
+          if (-not $env:SIGNING_ACCOUNT) { Write-Host "Signing not configured: this build is unsigned." }
       - name: Self-test the built .exe
         shell: pwsh
         env: { QT_QPA_PLATFORM: offscreen }
