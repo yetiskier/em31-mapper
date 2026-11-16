@@ -1,0 +1,25 @@
+# Push this folder to GitHub and the Actions tab produces a ready-to-copy Windows build.
+name: build-windows
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt pyinstaller pytest
+      - run: python run_em31mapper.py --selftest --quiet
+        env: { QT_QPA_PLATFORM: offscreen }
+      - run: python -m pytest -q tests
+      - run: pyinstaller --noconfirm EM31Mapper.spec
+      - name: Self-test the built .exe
+        shell: pwsh
+        env: { QT_QPA_PLATFORM: offscreen }
+        # EM31Mapper.exe is a windowed program: PowerShell won't wait for it unless told to
+        run: |
+          $p = Start-Process dist/EM31Mapper/EM31Mapper.exe -ArgumentList '--selftest','--quiet' -Wait -PassThru
+          Get-Content "$env:USERPROFILE/Documents/EM31Mapper/selftest.txt"
+          exit $p.ExitCode
+      - uses: actions/upload-artifact@v4
+        with: { name: EM31Mapper-windows, path: dist/EM31Mapper }

@@ -1,0 +1,8 @@
+# Exact versions tested in the Windows build (Qt 6.9 avoids the ICU dependency of
+# Qt 6.10+, so the .exe also runs on older Windows 10 images).
+PySide6-Essentials==6.9.3
+pyqtgraph==0.14.0
+pyserial==3.5
+numpy==2.0.2
+tifffile==2025.5.10
+imagecodecs==2025.3.30
