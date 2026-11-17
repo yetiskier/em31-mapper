@@ -2,7 +2,7 @@
 
 1. Right-click `EM31Mapper.zip` → **Extract All…**, set the destination to `C:\` → **Extract**.
 2. Run `C:\EM31Mapper\EM31Mapper.exe`.
-3. If Windows SmartScreen says "Windows protected your PC", choose **More info → Run anyway** (the program is not code-signed).
+3. `EM31Mapper.exe` is signed by **Aesir Consulting LLC**. While the signature builds reputation, Windows SmartScreen may still show "Windows protected your PC" on first run: check that it names Aesir Consulting LLC as the publisher, then choose **More info → Run anyway**.
 
 Updating: close the program, delete `C:\EM31Mapper`, and extract the new zip. Settings and survey data live outside that folder and are kept.
 

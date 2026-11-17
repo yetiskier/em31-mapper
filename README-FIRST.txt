@@ -1,4 +1,4 @@
-EM31 Mapper 0.5.0 for Windows 10/11 (64-bit) - no Python or other installs needed
+EM31 Mapper 0.5.1 for Windows 10/11 (64-bit) - no Python or other installs needed
 ==================================================================================
 
 INSTALL ON THE MESA2
@@ -7,8 +7,9 @@ INSTALL ON THE MESA2
      To UPDATE: close the program, delete C:\EM31Mapper, extract the new zip the same way.
      (Settings and survey data are kept; they live outside this folder.)
   2. Double-click EM31Mapper.exe. (Right-click it > Send to > Desktop to make a shortcut.)
-  3. If Windows SmartScreen says "Windows protected your PC": More info > Run anyway.
-     (The program is not code-signed.)
+  3. The program is signed by Aesir Consulting LLC. While the signature is new, Windows
+     SmartScreen may still say "Windows protected your PC": check that it names
+     Aesir Consulting LLC as the publisher, then choose More info > Run anyway.
 
 CHECK IT WORKS (optional, 15 seconds)
   Make a second shortcut and add  --selftest  after the .exe in its Target box,

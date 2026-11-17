@@ -1,12 +1,12 @@
 # EM31 Mapper User Manual
 
-Version 0.5.0 · November 2026
+Version 0.5.1 · November 2026
 
 ## 1. Introduction
 
 EM31 Mapper turns a Geonics EM31-MK2 and a GPS into a real-time conductivity mapping system on a Windows tablet. It reads both instruments over COM ports, positions every EM31 reading from the GPS track, logs everything to disk, and draws a live gridded map as you walk. Planned survey lines, a boundary and aerial imagery can be shown underneath, with steering guidance along each line.
 
-This manual covers version 0.5.0.
+This manual covers version 0.5.1.
 
 ### What you need
 
@@ -39,7 +39,7 @@ The program is a self-contained folder, `C:\EM31Mapper`, delivered as a zip file
 1. Download [`EM31Mapper.zip`](https://github.com/yetiskier/em31-mapper/releases/latest/download/EM31Mapper.zip) (always the latest version) and copy it to the Mesa2 (a USB stick is easiest), or download it on the Mesa2 directly.
 2. Right-click (on the touchscreen: press and hold) `EM31Mapper.zip` → **Extract All…**. Replace the suggested folder with `C:\` and click **Extract**.
 3. Check that `C:\EM31Mapper\EM31Mapper.exe` exists. If you see `C:\EM31Mapper\EM31Mapper\…`, move the inner folder up to `C:\`.
-4. Double-click `EM31Mapper.exe`. If Windows SmartScreen says “Windows protected your PC”, tap **More info → Run anyway** (the program is not code-signed).
+4. Double-click `EM31Mapper.exe`. If Windows SmartScreen says “Windows protected your PC”, check that it names **Aesir Consulting LLC** as the publisher, then tap **More info → Run anyway**. The program is signed; the warning can still appear while the signature builds a download history with Microsoft.
 
 ### Shortcuts
 
@@ -53,7 +53,7 @@ The program is a self-contained folder, `C:\EM31Mapper`, delivered as a zip file
 2. Delete `C:\EM31Mapper` (recommended), or extract over it and choose **Replace the files in the destination**.
 3. Extract the new `EM31Mapper.zip` to `C:\` as above.
 
-Nothing you need is lost. Survey data, the imagery cache and logs live in `Documents\EM31Mapper`; settings, ports and the loaded plan are stored in your Windows user profile (registry key `HKEY_CURRENT_USER\Software\EM31Mapper`). Shortcuts keep working because the path is unchanged. The window title shows the version, e.g. **EM31 Mapper 0.5.0**.
+Nothing you need is lost. Survey data, the imagery cache and logs live in `Documents\EM31Mapper`; settings, ports and the loaded plan are stored in your Windows user profile (registry key `HKEY_CURRENT_USER\Software\EM31Mapper`). Shortcuts keep working because the path is unchanged. The window title shows the version, e.g. **EM31 Mapper 0.5.1**.
 
 ### Command-line options
 
@@ -486,7 +486,7 @@ Run `EM31Mapper.exe --selftest` (a shortcut with `--selftest` in its Target, sec
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| SmartScreen blocks the program | Unsigned program | More info → Run anyway |
+| SmartScreen warns about the program | New signature still building reputation with Microsoft | Check the publisher is Aesir Consulting LLC, then More info → Run anyway. If it says “Unknown publisher”, the download is not an official build |
 | “Missing DLL” at start | Incomplete extraction, or files missing from `C:\EM31Mapper` | Delete the folder and extract `EM31Mapper.zip` again (section 2) |
 | Port error, “retrying…” | Port in use, wrong port, or device off | Close EM31win and GPS utilities; check the COM number in Device Manager or Bluetooth COM Ports |
 | NO DATA, monitor shows nothing | Cable, power, wrong port or baud | Check power and cable; EM31 at 9600 baud |
